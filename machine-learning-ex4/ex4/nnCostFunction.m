@@ -39,6 +39,37 @@ Theta2_grad = zeros(size(Theta2));
 %         cost function computation is correct by verifying the cost
 %         computed in ex4.m
 %
+
+labels = 1:num_labels;
+
+new_y = zeros(size(y*labels));
+
+for c = 1:length(y)
+    value = y(c,:);
+    new_y(c, value) = 1;
+
+endfor
+
+y = new_y;
+
+a1 = [ones(size(X, 1), 1) X];
+size(a1);
+z2 = a1*Theta1';
+a2 = sigmoid(z2);
+size(a2);
+
+z3 = [ones(size(a2, 1), 1) a2]*Theta2';
+a3 = sigmoid(z3);
+size(a3);
+
+	
+J = 1/(m) * sum(sum(-new_y.*log(a3) - (1-new_y).*log(1-a3)));
+ 
+
+regularization = lambda/(2*m) * sum(sum(sum(Theta1(:, 2:end).^2)) + sum(sum(Theta2(:, 2:end).^2)));
+J += regularization;
+
+
 % Part 2: Implement the backpropagation algorithm to compute the gradients
 %         Theta1_grad and Theta2_grad. You should return the partial derivatives of
 %         the cost function with respect to Theta1 and Theta2 in Theta1_grad and
@@ -53,7 +84,24 @@ Theta2_grad = zeros(size(Theta2));
 %         Hint: We recommend implementing backpropagation using a for-loop
 %               over the training examples if you are implementing it for the 
 %               first time.
-%
+
+
+
+delta3 = a3 - y;
+delta2 = delta3*Theta2(:, 2:end).*sigmoidGradient(z2);
+
+upper_delta1 = 0;
+upper_delta2 = 0;
+
+upper_delta1 = upper_delta1 + delta2'*a1;
+upper_delta2 = upper_delta2 + delta3'*[ones(size(a2, 1), 1) a2];
+
+Theta1_grad = (1/m).*(upper_delta1);
+Theta2_grad = (1/m).*(upper_delta2);
+
+
+
+
 % Part 3: Implement regularization with the cost function and gradients.
 %
 %         Hint: You can implement this around the code for
@@ -62,52 +110,12 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
-
-labels = 1:num_labels;
-
-
-
-new_y = zeros(size(y*labels));
-
-for c = 1:length(y)
-    value = y(c,:);
-    new_y(c, value) = 1;
-
-endfor
+reg_Theta1 = lambda/m * [zeros(size(Theta1,1),1) Theta1(:, 2:end)];
+reg_Theta2 = lambda/m * [zeros(size(Theta2,1),1) Theta2(:, 2:end)];
 
 
-
-%J = (1/m)*sum(-y'*log(sigmoid(X*Theta1)) - (1-y)'*log(1-sigmoid(X*Theta1)));
-
-
-a1 = [ones(size(X, 1), 1) X];
-size(a1)
-z2 = a1*Theta1';
-a2 = sigmoid(z2);
-size(a2)
-
-z3 = [ones(size(a2, 1), 1) a2]*Theta2';
-a3 = sigmoid(z3);
-size(a3)
-
-
-
-
-cost = 0
-
-%for l = 1:length(labels)
-%    cost += 1/m * sum(new_y(:,l)'*log(a3) - (1-new_y(:, l)'*log(1-a3)))
-%endear
-
-
-%sum(-new_y*(a3) - (1-new_y)'*(a3))
-	
-J = 1/(m) * sum(sum(-new_y.*log(a3) - (1-new_y).*log(1-a3)))
-
-
-
-
-
+Theta1_grad += reg_Theta1;
+Theta2_grad += reg_Theta2;
 
 
 
